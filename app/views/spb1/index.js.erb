@@ -1,0 +1,306 @@
+$(".main-content").html("<%= escape_javascript(render 'index') %>");
+var count;
+var minutesLabel = document.getElementById("minutes");
+var secondsLabel = document.getElementById("seconds");
+var hoursLabel = document.getElementById("hours");
+var totalSeconds = 0;
+
+function dikSocket(send_msg,konci,ipreader) {
+   const ws = new WebSocket(`ws://${ipreader}:8001/socket.io/1/websocket/${konci}`);
+    ws.onopen = function() {
+      if (send_msg == 'cleardata'){
+        ws.send('5:::{"name":"InventoryCommand","args":["ClearData"]}');
+        
+        setTime('clear');
+        $(".tbody_item").html('');
+        $(".total_box").html(0);
+      } else if (send_msg == 'stop_ws'){
+        ws.send('5:::{"name":"InventoryCommand","args":["Stop:NaN"]}')
+        setTime('stop');
+        ws.close()
+
+        // POST AND RETURN TO TABLE
+          var rows = $(".tbody_item td input").map(function() { 
+            return { name : $(this).attr('name'), value :$(this).val()};   
+          });  
+          rows.push({name : 'plant_id', value : $('.select_plant').val() })
+          // <%# hash_request = {} %>
+          // <%# @request_items.map { |e| hash_request[e.internal_part_id] = {"request_id" => e.id ,"internal_part_id" => e.internal_part_id, "qty_stock" => e.qty_stock.to_f, "outstanding" => e.outstanding_item} }.as_json if @request_items.present? %>
+          // var hash_request = JSON.parse((`<%#= hash_request.to_json.html_safe %>`).replace(/&quot;/g,'"'));
+
+
+          $.ajax({
+            url: "/<%= params[:controller] %>/stop_ws",
+            type: "POST",
+            dataType: "script",
+            data: rows,
+            success: function(data) {
+              var data = JSON.parse(data);
+              var meme = "";
+              var total_box = 0;
+              var c = 1;
+              $.each(data.data, function( key, value ) {
+                if (value.identity_id>0) {
+                  // if(typeof hash_request[`${value.internal_part_id}`] != "undefined"){
+                    var bgcolor = "";
+                    var tooltip = '';
+                    var disabled = "";
+                    var qty_stock = 0;
+                    var outstanding = 0;
+                    var request_id = 0;
+                  // }else{
+                  //   var bgcolor = "bg-danger";
+                  //   var tooltip = 'title="Part Tidak Sama Dengan Request"';
+                  //   var disabled = 'disabled="disabled"'; //disabled
+                  //   var qty_stock = 0;
+                  //   var outstanding = 0;
+                  //   var request_id = 0;
+                  // }
+                }else{
+                  var bgcolor = "bg-danger";
+                  var tooltip = 'title="RFID Code Tidak Terdaftar"';
+                  var disabled = 'disabled="disabled"'; //disabled
+                  var qty_stock = 0;
+                  var outstanding = 0;
+                  var request_id = 0;
+                }
+                meme += (`<tr class="${bgcolor}" ${tooltip}>
+                          <td>
+                            <div class='custom-control custom-checkbox text-center'>
+                              <input type='checkbox' ${disabled} onchange="collect_data()" class='form-check-input' id='customCheck${c}' trid="${c}">
+
+                              <input type='hidden' class='qty_stock' value="${value.qty_stock}">
+                              <input type='hidden' class='outstanding' value="${outstanding}">
+                              <input type='hidden' class='packaging_id' value="${value.packaging_id}">
+                              <input type='hidden' class='request_id' value="${request_id}">
+                            </div>
+                            </td>
+                          <td class="count" trid="${c}">${c}</td>
+                          <td><input type="text" style="width: 250px;" class="form-control form-control-sm epc_${c}" value="${value.epc}" readonly="true" name="epc"></td>
+                          <td><input type="text" style="width: 150px;" class="form-control form-control-sm epc_value" value="${value.epc_value}" readonly="true" name="epc_value"></td>
+                          <td><input type="text" style="width: 50px;" class="form-control form-control-sm" value="${value.antenna_id}" readonly="true" name="antenna_id"></td>
+                          <td><input type="text" style="width: 150px;" class="form-control form-control-sm internal_part_id" value="${(value.internal_part_id)}" readonly="true" name="internal_part_id"></td>
+                          <td><input type="text" style="width: 250px;" class="form-control form-control-sm part_name" value="${(value.part_name)}" readonly="true" name="part_name"></td>
+                          <td><input type="text" style="width: 50px;" class="form-control form-control-sm quantity" value="${(value.quantity)}" readonly="true" name="quantity"></td>
+                          <td><input type="text" style="width: 200px;" class="form-control form-control-sm" value="${(value.datetime)}" readonly="true" name="datetime"></td>
+                          </tr>`);
+                total_box+=1;
+                c+=1;
+              });
+              $(".total_box").html(total_box);
+              $(".tbody_item").html(meme);
+            }
+          });
+        // END POST AND RETURN
+
+
+        $("#start").removeAttr("disabled");
+        $("#clear").removeAttr("disabled");
+        $("#collect_data").removeAttr('disabled');
+        $("#save_spb1").removeAttr('disabled');
+        $("#stop").attr("disabled","disabled");
+      } else {
+        ws.send(send_msg);
+      }
+    };
+   ws.onmessage = function (evt) { 
+      var received_msg = evt.data;
+      if(received_msg=="2::"){
+        ws.send("2::");
+      }else if(received_msg=="1::"){
+        ws.send('5:::{"name":"InventoryStatus","args":["InventoryStatus"]}');
+        ws.send('5:::{"name":"StartStopTIme","args":["time"]}');
+        ws.send('5:::{"name":"LLRPConnect","args":["InventoryCommand:Start@5084 0"]}');
+        $('.tbody_item').html('')
+      }else{
+        received_msg = JSON.parse(received_msg.replace("5:::",''))
+        if(received_msg.name == 'tagReport'){
+          // console.log(received_msg.args[0].tag)
+          var meme = ""
+          var total_box = 0;
+          var tid =Array();
+          var c = 1;
+
+          var antenna = Array(0,<%=  @rfid_config.antenna_1 %>,<%=  @rfid_config.antenna_2 %>,<%=  @rfid_config.antenna_3 %>,<%=  @rfid_config.antenna_4 %>);
+          $.each( received_msg.args[0].tag, function( key, value ) {
+            if(antenna[`${value.A.replace(' ','')}`]==1){  
+              if(Number(tid.indexOf(value.T)) > -1){
+                // console.log(tid.indexOf(value.T))
+                // Handle Duplicate
+              }else{
+                tid += value.T;
+                var split = value.d.split(' ');
+                var date = split[0];
+                var time = split[1];
+                var datetime = (`${date.split('/')[2]}-${date.split('/')[1]}-${date.split('/')[0]} ${time}`)
+                meme += (`<tr>
+                        <td>
+                          <div class='custom-control custom-checkbox text-center'>
+                            <input type='checkbox' class='form-check-input' id='customCheck${c}' trid="${c}" "+disabled+">
+                          </div>
+                        </td>
+                        <td>${c}</td>
+                        <td><input type="text" style="width: 250px;" class="form-control form-control-sm" value="${value.T}" readonly="true" name="record[][epc]"></td>
+                        <td><input type="text" style="width: 150px;" class="form-control form-control-sm" value="${parseInt(value.T.substr(value.T.length - 8), 16)}" readonly="true" name="record[][epc_value]"></td>
+                        <td><input type="text" style="width: 50px;" class="form-control form-control-sm" value="${value.A.replace(' ','')}" readonly="true" name="record[][antenna_id]"></td>
+                        <td><input type="text" style="width: 150px;" class="form-control form-control-sm" value="" readonly="true" name="record[][internal_part_id]"></td>
+                        <td><input type="text" style="width: 250px;" class="form-control form-control-sm" value="" readonly="true" name="part_name"></td>
+                        <td><input type="text" style="width: 50px;" class="form-control form-control-sm" value="1" readonly="true" name="quantity"></td>
+                        <td><input type="text" style="width: 200px;" class="form-control form-control-sm" value="${(datetime)}" readonly="true" name="record[][datetime]"></td></tr>`);
+                total_box+=1;
+                c+=1;
+              }
+            }
+          });
+
+          $(".total_box").html(total_box);
+          $(".tbody_item").html(meme);
+          // $('.table-responsive').scrollTop($('.table-scan').height());
+        }
+      }
+   };
+
+   ws.onclose = function() { 
+      // dikSocket('run',getkey());
+      ws.close()
+   };
+}   
+
+function getkey(){
+  $("#start").attr("disabled","disabled");
+  $("#collect_data").attr('disabled','disabled');
+  $("#save_spb1").attr('disabled','disabled');
+  $("#clear").removeAttr("disabled");
+  $("#stop").removeAttr("disabled");
+  var xmlHttp = new XMLHttpRequest();
+  xmlHttp.open( "GET", 'http://<%= @rfid_config.reader_ip %>:8001/socket.io/1/?t=1610709269884', false ); // false for synchronous request
+  try {
+    xmlHttp.send( null );
+
+    var wewa = xmlHttp.responseText.split(":")[0];
+    document.getElementById("stop").setAttribute("onclick", "dikSocket('stop_ws','"+wewa+"','<%= @rfid_config.reader_ip %>')");
+    document.getElementById("clear").setAttribute("onclick", "dikSocket('cleardata','"+wewa+"','<%= @rfid_config.reader_ip %>')");
+    // TIMER
+    clearInterval(count);
+    totalSeconds = 0;
+    count = setInterval(function() { setTime("start"); }, 1000);
+    // end timer
+    return wewa;
+
+  }catch(err) {
+    alert(err)
+  }   
+}
+
+function setTime(apa) {
+  if(apa=="start"){
+    ++totalSeconds;
+    secondsLabel.innerHTML = pad(totalSeconds % 60);
+    minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60 % 60));
+    hoursLabel.innerHTML = pad(parseInt(totalSeconds / 60 / 60));
+  } else if(apa=="clear"){
+    totalSeconds = 0;
+    secondsLabel.innerHTML = pad(totalSeconds % 60);
+    minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60 % 60));
+    hoursLabel.innerHTML = pad(parseInt(totalSeconds / 60 / 60));
+  } else {
+    clearInterval(count);
+    secondsLabel.innerHTML = pad(totalSeconds % 60);
+    minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60 % 60));
+    hoursLabel.innerHTML = pad(parseInt(totalSeconds / 60 / 60));
+    
+  }
+}
+
+function pad(val) {
+  var valString = val + "";
+  if (valString.length < 2) {
+    return "0" + valString;
+  } else {
+    return valString;
+  }
+}
+
+$('.select-all').click(function(event) {   
+  if(this.checked) {
+      // Iterate each checkbox
+      $('.table-scan :checkbox').each(function() {
+        if(this.disabled == false){
+          this.checked = true;                        
+        }
+      });
+  } else {
+      $('.table-scan :checkbox').each(function() {
+        if(this.disabled == false){
+          this.checked = false;                       
+        }
+      });
+  }
+});
+
+function collect_data(){
+  var arr = [];
+  var array = null;
+  var epc_value = "";
+  var pname = "";
+  var pn = "";
+  var qty = 0;
+  var qty_stock = 0;
+  var outstanding = 0;
+  var packaging_id, request_id;
+  var c = 0;
+  $('.tbody_item tr').each(function (k,v) {
+    if ($(v).find('.form-check-input').is(':checked')==true) {
+      pname = $(v).find(".part_name").val();
+      pn = $(v).find(".internal_part_id").val();
+      qty = Number($(v).find(".quantity").val());
+      qty_stock = Number($(v).find(".qty_stock").val());
+      outstanding = Number($(v).find(".outstanding").val());
+      packaging_id = Number($(v).find(".packaging_id").val());
+      request_id = Number($(v).find(".request_id").val());
+      epc_value = $(v).find(".epc_value").val();
+      console.log(epc_value)
+      console.log({ part_number: pn, part_name: pname, part_qty: qty, qty_stock: qty_stock, outstanding: outstanding, packaging_id: packaging_id, request_id: request_id, epc_value: epc_value })
+      arr.push({ part_number: pn, part_name: pname, part_qty: qty, qty_stock: qty_stock, outstanding: outstanding, packaging_id: packaging_id, request_id: request_id, epc_value: epc_value });
+      c +=1;
+    }
+  });
+  var result = [];
+  arr.reduce(function(res, value) {
+    if (!res[value.part_number]) {
+      res[value.part_number] = { part_number: value.part_number, part_name: value.part_name, part_qty: 0, qty_stock: value.qty_stock, outstanding: outstanding, packaging_id: packaging_id, request_id: request_id, epc_value: [] };
+      result.push(res[value.part_number]);
+    }
+    res[value.part_number].part_qty += value.part_qty;     
+    res[value.part_number].epc_value.push(value.epc_value);     
+
+      console.log(JSON.stringify(res));
+    return res;
+  }, {});
+
+  var c = 1;
+  var tbl_sum = "";
+  $.each(result, function(k, v) {
+    tbl_sum += `<tr>
+                  <td>
+                    ${c}
+                    <input type="hidden" value="${v.packaging_id}" name="record[][eng_packaging_id]">
+                    <input type="hidden" value="${v.epc_value}" name="record[][epc_value]">
+                    <input type="hidden" name="record[][eng_material_id]">
+                    <input type="hidden" value="${v.request_id}" name="record[][prod_material_request_item_id]">
+                  </td>
+                  <td><input type="text" style="min-width: 250px;" class="form-control form-control-sm" readonly="true" name="part_name" value="${v['part_name']}" ></td>
+                  <td><input type="text" style="min-width: 150px;" class="form-control form-control-sm" readonly="true" name="record[][internal_part_id]" value="${v['part_number']}" ></td>
+                  <td><input type="text" style="min-width: 50px;" class="form-control form-control-sm" readonly="true" name="record[][quantity]" value="${v['part_qty']}" ></td>
+                  <td><input type="text" style="min-width: 50px;" class="form-control form-control-sm" readonly="true" name="record[][qty_stock]" value="${v['qty_stock']}" ></td>
+                </tr>`;
+    c+=1;
+  });
+  $(".table-collect .tbody_collect").html(tbl_sum);
+
+}
+
+$(document).off('change','#plant');
+$(document).on('change','#plant', function(){
+  $(".select_plant").val($(this).val());
+});

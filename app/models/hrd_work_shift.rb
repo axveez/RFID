@@ -1,0 +1,2 @@
+class HrdWorkShift < SipDbBase
+end

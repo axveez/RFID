@@ -1,0 +1,127 @@
+        
+<style type="text/css">
+    .th-header{
+        position:sticky;
+        top: 0 ;
+        background-color: #373b3e !important;
+        color: white;
+    }
+</style>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12 col-lg-3">
+      <div class="card border-secondary mb-2">
+        <div class="card-body">
+          <div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">Plant</label>
+            <%= select_tag "plant", options_for_select(@plants,(params[:plant_id])),:prompt=>'- Select Plant -', :class=>"form-control plant"%>
+          </div>
+          <div class="mb-3 form_bqics" style="display: none;">
+            <label for="exampleFormControlInput1" class="form-label">BQICS</label>
+            <%= select_tag "bqics", options_for_select(["YES","NO"],"NO"), :class=>"form-control bqics"%>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-9">
+      <div class="row">
+        <div class="col-12 col-md-6 justify-content-center" style="display: flex;">
+          <button type="button" class="btn btn-md btn-primary mb-2 px-4 mx-3" onclick="dikSocket('run',getkey(),'<%= @rfid_config.reader_ip %>');" id="start">Start</button>
+          <button type="button" class="btn btn-md btn-warning mb-2 px-4 mx-3" onclick="" id="clear" disabled="disabled">Clear</button>
+          <button type="button" class="btn btn-md btn-danger mb-2 px-4 mx-3"  onclick="" id="stop" disabled="disabled">Stop</button>
+        </div>
+        <div class="col-12 col-md-6 text-end">
+          <!-- <button type="button" class="btn btn-md btn-success mb-2 px-5"  onclick="collect_data()" disabled="disabled" id="collect_data">Collect Data</button> -->
+        </div>
+        <div class="col-6">
+          <div class="card mb-2 border-secondary text-center">
+            <div class="card-body" style="padding: 0rem 0rem;">
+              <div style="font-size: 2em;margin:0px 0px 0px 0px;" class="total_box">0</div>
+            </div>
+            <div class="card-footer bg-info border-info">
+              TOTAL BOX
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card mb-2 border-secondary text-center">
+            <div class="card-body" style="padding: 0rem 0rem;">
+              <div style="font-size: 2em;margin:0px 0px 0px 0px;"><label id="hours">00</label>:<label id="minutes">00</label>:<label id="seconds">00</label></div>
+            </div>
+            <div class="card-footer bg-warning border-warning">
+              SCAN TIME
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="table-responsive border-secondary" style="height: 35vh;border: 1px solid rgba(0, 0, 0, 0.125);">
+        <table class="table table-bordered table-sm table-scan">
+          <thead>
+            <tr>
+              <th class="th-header" scope="col" width="30px">
+                <div class="custom-control custom-checkbox text-center">
+                  <input class="form-check-input select-all" type="checkbox" onchange="collect_data()" id="checkboxNoLabel" value="" aria-label="checkall">
+                </div>  
+              </th>
+              <th class="th-header" scope="col" width="50px">No.</th>
+              <th class="th-header" scope="col">EPC</th>
+              <th class="th-header" scope="col">EPC VALUE</th>
+              <th class="th-header" scope="col" width="50px">Reader</th>
+              <th class="th-header" scope="col">Part ID</th>
+              <th class="th-header" scope="col">Part Name</th>
+              <th class="th-header" scope="col">Quantity</th>
+              <th class="th-header" scope="col">Date Time</th>
+            </tr>
+          </thead>
+          <tbody class="tbody_item">
+            <tr><td colspan="9" class="text-center">KOSONG</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-12 col-lg-12">
+      <hr>
+      <%= form_tag("/#{params[:controller]}/cru/?job=create", remote: true, :class=>"form-horizontal form-border") do %>
+        <div class="row mt-2">
+          <div class="col-12 col-md-6 text-center">
+            <%= hidden_field_tag "select_plant", nil, :class=>"select_plant"%>
+            <%= hidden_field_tag "select_bqics", 0, :class=>"select_bqics"%>
+
+            <input class="btn btn-md btn-success mb-2 px-5" type="submit" onclick="" id="save_spb2" disabled="disabled" value="Create SPB 2"/>
+            <button class="btn btn-md btn-success mb-2 px-5" onclick="" id="save_spb2_clear" style="display: none;" /></button>
+            
+          </div>
+          <div class="col-12 col-md-6 text-center text-end">
+            <div class="alert alert-sm alert-danger alert-dismissible fade show div-flash" style="opacity: 500; display: none;">
+              <strong class="strong-msg">ERROR!</strong> <i class="msg-flash">You should check in on some of those fields below.</i>
+            </div>
+            <!-- <button type="button" class="btn btn-md btn-success mb-2 px-5"  onclick="collect_data()" disabled="disabled" id="collect_data">Collect Data</button> -->
+          </div>
+          <div class="col-12">
+            <div class="card mb-2 border-secondary text-center">
+              <div class="table-responsive border-secondary" style="height: 35vh;border: 1px solid rgba(0, 0, 0, 0.125);">
+                <table class="table table-bordered table-sm table-collect">
+                  <thead>
+                    <tr>
+                      <th class="th-header" scope="col" width="50px">No.</th>
+                      <th class="th-header" scope="col">Part ID</th>
+                      <th class="th-header" scope="col">Part Name</th>
+                      <th class="th-header" scope="col">BQICS</th>
+                      <th class="th-header" scope="col">Quantity</th>
+                      <th class="th-header" scope="col">Total Box</th>
+                      <th class="th-header" scope="col">Qty / Box</th>
+                      <th class="th-header" scope="col">Option</th>
+                    </tr>
+                  </thead>
+                  <tbody class="tbody_collect">
+                    <tr><td colspan="6" class="text-center">KOSONG</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      <%- end %>
+    </div>
+  </div>
+</div>

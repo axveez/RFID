@@ -1,0 +1,9 @@
+<script type="text/javascript">
+  $(document).ready(function(){
+    $.ajax({
+      url: "/<%= params[:controller] %>/index",
+      type: "Get",
+      dataType: "script"
+    });
+  });
+</script>

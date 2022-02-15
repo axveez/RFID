@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>NewRfid</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= stylesheet_pack_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
+  </head>
+
+  <body style="background-color: #F0F3F3;">
+    <% case params[:action].to_s %>
+    <% when "login" %>
+    <% else %>
+      <nav class="navbar navbar-expand-sm navbar-dark bg-dark mb-2">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="/">
+            <!-- <img src="https://getbootstrap.com/docs/5.0/assets/brand/bootstrap-logo.svg" alt="" width="30" height="24" class="d-inline-block align-top"> -->
+            RFID.APP
+          </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="/">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/spb1">SPB1</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/spb2">SPB2</a>
+              </li>
+              <!-- <li class="nav-item">
+                <a class="nav-link" href="/setting">Config</a>
+              </li> -->
+            </ul>
+
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle px-2" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="px-2"><%= session[:name] %></span>
+                  <img src="https://s3.eu-central-1.amazonaws.com/bootstrapbaymisc/blog/24_days_bootstrap/fox.jpg" width="30" height="30" class="rounded-circle">
+                </a>
+                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
+                  <a class="dropdown-item disabled" href="javascript:;">RFID</a>
+                  <hr style="margin: 0.5rem 0;">
+                  <div class="px-2 px-2"><a href="/logout"><button class="btn btn-sm btn-outline-danger form-control">LOGOUT</button></a></div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    <% end %>
+
+    <div class="container-fluid main-content">
+      <%= yield %>
+    </div>
+  </body>
+</html>

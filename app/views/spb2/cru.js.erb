@@ -1,0 +1,31 @@
+$("#save_spb2").attr('disabled','disabled');
+
+<% if flash[:error].present? %>
+  $(".strong-msg").html("ERROR!")
+  $(".msg-flash").html("<%= flash[:error] %>");
+  $(".div-flash").removeClass("alert-success")
+  $(".div-flash").addClass("alert-danger")
+  $(".div-flash").fadeTo(2000, 500).slideUp(500, function() {
+    $(".div-flash").slideUp(500);
+    $("#save_spb2").removeAttr('disabled');
+  });
+<% end %>
+
+<% if flash[:success].present? %>
+  $(".strong-msg").html("SUCCESS,")
+  $(".msg-flash").html("<%= flash[:success] %>");
+  $(".div-flash").removeClass("alert-danger")
+  $(".div-flash").addClass("alert-success")
+  $(".div-flash").fadeTo(2000, 500).slideUp(500, function() {
+    $(".div-flash").slideUp(500);
+    $("#save_spb2").removeAttr('disabled');
+    // $("#save_spb1_clear").click();
+    $.ajax({
+      url: "/<%= params[:controller] %>/index",
+      type: "Get",
+      dataType: "script",
+      data: {
+      }
+    });
+  });
+<% end %>

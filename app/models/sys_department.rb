@@ -1,0 +1,2 @@
+class SysDepartment < SipDbBase
+end

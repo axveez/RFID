@@ -1,0 +1,42 @@
+<div class="container mt-5">
+  <h1 class="text-center pt-5 pb-2" style="">RFID TECHNO-TSSI</h1>
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-12">
+      <div class="card border shadow rounded-3">
+        <div class="card-header" style="color: #fff;background-color: #556B8D;border-color: #556B8D;">
+          SIGN IN
+        </div>
+        <div class="card-body">
+          <form accept-charset="UTF-8" action="login" class="form-horizontal" method="post">
+            <div class="mb-2" style="font-size: 13px;font-weight: bold;">Login to access your account.</div>
+            <div class="input-group mb-2">
+              <span class="input-group-text" id="basic-addon1"><i class="far fa-user"></i></span>
+              <input type="text" name="username" class="form-control" id="floatingUsername" placeholder="Username">
+              <!-- <label for="floatingUsername">Username</label> -->
+            </div>
+            <div class="input-group mb-2">
+              <span class="input-group-text" id="basic-addon1"><i class="far fa-lock"></i></span>
+              <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Password">
+              <!-- <label for="floatingPassword">Password</label> -->
+            </div>
+
+            <div class="mb-2">
+              <button type="submit" class="btn px-5 py-2 btn-sm" style="width: 100%;color: #fff;background-color: #556B8D;border-color: #556B8D;">Submit</button>
+            </div>
+            <div class="text-end">
+              <hr>
+              <!-- <small>Forgot Password ?</small> -->
+              <a href="https://sip.tri-saudara.com/" target="_blank" class="btn btn-sm text-end mx-2 px-3" style="color: #fff;border-color: #556B8D;"><%= image_tag "logo-sip2.png", :height=>"25px"; %></a>
+              <!-- <a href="https://sip.tri-saudara.com/" target="_blank" class="btn btn-sm text-end mx-2 px-3" style="float:right;color: #fff;border-color: #556B8D;"><%#= image_tag "logo-sip2.png", :height=>"25px"; %></a> -->
+            </div>
+
+            <div class="text-center">
+              <p style="font-weight: bold;font-size: 13px;"><%= flash[:success] %><%= flash[:error] %></p>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

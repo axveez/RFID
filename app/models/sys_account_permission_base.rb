@@ -1,0 +1,2 @@
+class SysAccountPermissionBase < SipDbBase
+end

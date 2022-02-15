@@ -1,0 +1,2 @@
+class EngProduct < SipDbBase
+end

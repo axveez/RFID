@@ -1,0 +1,2 @@
+class RfidConfiguration < ApplicationRecord
+end
