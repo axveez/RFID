@@ -29,11 +29,15 @@ class Spb2Controller < ApplicationController
     # -----------------------------------------------------------
 
 
+    start_month = Date.today.at_beginning_of_month.strftime("%Y-%m-%d")
+    end_month = Date.today.end_of_month.strftime("%Y-%m-%d")
+    @bqics = QcBqic.where("date between ? and ?", start_month, end_month)
+
      # if params[:record].present?
     params[:record].each do |rec|
       combine_detail = combine.find_by(:rfid_number=>rec["epc_value"])
       label_detail =  (combine_detail.qc_label_product if combine_detail.present? and combine_detail.qc_label_product_id.present?)
-      bqics = (combine_detail.present? ? QcBqic.where(:eng_product_id=>(label_detail.eng_product_id if label_detail.present?)).order("date desc").limit(3) : [])
+      bqics = (combine_detail.present? ? @bqics.where(:eng_product_id=>(label_detail.eng_product_id if label_detail.present?)).order("date desc") : [])
       kembali += [{:epc=>rec["epc"],
         :epc_value=>rec["epc_value"],
         :antenna_id=>rec["antenna_id"],
@@ -105,10 +109,12 @@ class Spb2Controller < ApplicationController
         params[:header]["created_at"] = DateTime.now()
         params[:header]["bqics_used"] = params["select_bqics"]
 
-        if false_bqics > 0 #item bqics nya ga di isi
+        #item bqics nya ga di isi
+        if false_bqics > 0
           status = "403 Forbidden"
           message1 = "Check Ulang Form Anda"
-          message2 = 
+          message2 = ""
+          puts error
         else 
           begin
             record = ProdSpb2.new(params[:header].permit!)

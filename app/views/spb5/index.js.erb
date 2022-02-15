@@ -59,6 +59,14 @@ function dikSocket(send_msg,konci,ipreader) {
                       disabled = 'disabled="disabled"';
                     }
                   }
+
+                  if(value.internal_part_id.substring(0,3)!="PSA"){
+                    if(value.bqics.length==0){
+                      bgcolor = "bg-warning";
+                      tooltip = 'title="Bukan Part PSA/ pastikan sudah di combine"';
+                      disabled = 'disabled="disabled"';
+                    }
+                  }
                 }
                 meme += (`<tr class="${bgcolor}" ${tooltip}>
                           <td>
@@ -90,7 +98,7 @@ function dikSocket(send_msg,konci,ipreader) {
         $("#start").removeAttr("disabled");
         $("#clear").removeAttr("disabled");
         $("#collect_data").removeAttr('disabled');
-        $("#save_spb2").removeAttr('disabled');
+        $("#save_spb5").removeAttr('disabled');
         $("#stop").attr("disabled","disabled");
       } else {
         ws.send(send_msg);
@@ -162,7 +170,7 @@ function dikSocket(send_msg,konci,ipreader) {
 function getkey(){
   $("#start").attr("disabled","disabled");
   $("#collect_data").attr('disabled','disabled');
-  $("#save_spb2").attr('disabled','disabled');
+  $("#save_spb5").attr('disabled','disabled');
   $("#clear").removeAttr("disabled");
   $("#stop").removeAttr("disabled");
   var xmlHttp = new XMLHttpRequest();

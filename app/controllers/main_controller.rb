@@ -35,7 +35,7 @@ class MainController < ApplicationController
             session[:duty_plant_id]+=[[user.hrd_employee.duty_plant_name_3,user.hrd_employee.duty_plant_3]] if user.hrd_employee.duty_plant_3.present?
             session[:duty_plant_id]+=[[user.hrd_employee.duty_plant_name_4,user.hrd_employee.duty_plant_4]] if user.hrd_employee.duty_plant_4.present?
 
-            feature_acceptence = ["wh_spb1"]
+            feature_acceptence = ["wh_spb1","prod_spb2","secproc_spb5"]
 
             session.delete(:permission)
             (1..4).each do |sys_plant_id|
