@@ -31,13 +31,12 @@ class Spb5Controller < ApplicationController
 
     start_month = Date.today.at_beginning_of_month.strftime("%Y-%m-%d")
     end_month = Date.today.end_of_month.strftime("%Y-%m-%d")
-    @bqics = QcBqic.where("date between ? and ?", start_month, end_month)
+    # @bqics = QcBqic.where("date between ? and ?", start_month, end_month)
 
      # if params[:record].present?
     params[:record].each do |rec|
       combine_detail = combine.find_by(:rfid_number=>rec["epc_value"])
       label_detail =  (combine_detail.qc_label_product if combine_detail.present? and combine_detail.qc_label_product_id.present?)
-      bqics = (combine_detail.present? ? @bqics.where(:eng_product_id=>(label_detail.eng_product_id if label_detail.present?)).order("date desc") : [])
       kembali += [{:epc=>rec["epc"],
         :epc_value=>rec["epc_value"],
         :antenna_id=>rec["antenna_id"],
@@ -51,7 +50,7 @@ class Spb5Controller < ApplicationController
         :quantity_label=>(label_detail.quantity if label_detail.present?),
         :quantity=>(label_detail.quantity_box if label_detail.present?),
         :quantity_last=>(label_detail.quantity_box_last if label_detail.present?).to_i,
-        :bqics=>(bqics.as_json),
+        :bqics=>(nil),
         :qty_stock=>1}]
     end  if params[:record].present?
     data = {:status=>"200 OK",:data=>kembali,:msg=>"Akpiiz"}
@@ -63,85 +62,75 @@ class Spb5Controller < ApplicationController
     message1 = ""
     message2 = ""
     if params[:record].present? and params["select_plant"].present?
-      # if status == "200 OK"
-      #   message1 = "Akpiiz"
-      #   message2 = ""
-      #   record_save = []
-      #   false_bqics = 0
-      #   params[:record].each do |record|
-      #     record_save.push({
-      #                     "internal_part_id"=>record["internal_part_id"], 
-      #                     "quantity"=>record["quantity"], 
-      #                     "total_box"=>record["box_total"], 
-      #                     "quantity_box"=>record["qty_box"], 
-      #                     "eng_packaging_id"=> (record["eng_packaging_id"] if record["eng_packaging_id"].present?), 
-      #                     "eng_product_id"=> (record["eng_product_id"] if record["eng_product_id"].present?),
-      #                     "remarks"=> "spb5 by RFID",
-      #                     "remark2"=> "spb5 by RFID",
-      #                     "status_item"=> "active",
-      #                     "qc_bqics_id"=> (record["qc_bqics_id"] if record["qc_bqics_id"].present?),
-      #                     "mkt_spp_item_id"=> nil,
-      #                     "created_by"=>session[:id],
-      #                     "created_at"=>DateTime.now()
-      #                   })
-      #     false_bqics += (1 if params["select_bqics"]==1 and record["qc_bqics_id"].blank?).to_i
-      #   end
+      if status == "200 OK"
+        message1 = "Akpiiz"
+        message2 = ""
+        record_save = []
+        params[:record].each do |record|
+          record_save.push({
+                          "internal_part_id"=>record["internal_part_id"], 
+                          "quantity"=>record["quantity"], 
+                          "total_box"=>record["box_total"], 
+                          "quantity_box"=>record["qty_box"], 
+                          "eng_packaging_id"=> (record["eng_packaging_id"] if record["eng_packaging_id"].present?), 
+                          "eng_product_id"=> (record["eng_product_id"] if record["eng_product_id"].present?),
+                          "note"=> "spb5 by RFID",
+                          "note2"=> "spb5 by RFID",
+                          "status"=> "active",
+                          "created_by"=>session[:id],
+                          "created_at"=>DateTime.now()
+                        })
+        end
 
-      #   # ------------Menentukan Shift------------------------------- 
-      #   now = Time.now
-      #   hour = now.hour
-      #   min = now.min
-      #   sec = now.sec
-      #   if hour >= 8 and min >= 00 and sec >= 00 and hour <= 15 and min <= 59 and sec <= 59 
-      #     shift_now = 2
-      #   elsif hour >= 16 and min >= 00 and sec >= 00 and hour <= 23 and min <= 59 and sec <= 59 
-      #     shift_now = 3
-      #   elsif hour >= 00 and min >= 00 and sec >= 00 and hour <= 7 and min <= 59 and sec <= 59 
-      #     shift_now = 4
-      #   end 
-      # # -----------------------------------------------------------
-      #   params[:header]["sys_plant_id"] = params["select_plant"]
-      #   params[:header]["date"] = DateTime.now()
-      #   params[:header]["sys_department_id"] = 8 #=> INJ Prod
-      #   params[:header]["number"] = document_number(params[:header]["sys_plant_id"], nil, nil, params[:header]["sys_department_id"], "prod", "spb5", params[:header]["date"], nil )
-      #   params[:header]["hrd_work_shift_id"] = shift_now
-      #   params[:header]["created_by"] = session[:id]
-      #   params[:header]["created_at"] = DateTime.now()
-      #   params[:header]["bqics_used"] = params["select_bqics"]
+        # ------------Menentukan Shift------------------------------- 
+        now = Time.now
+        hour = now.hour
+        min = now.min
+        sec = now.sec
+        if hour >= 8 and min >= 00 and sec >= 00 and hour <= 15 and min <= 59 and sec <= 59 
+          shift_now = 2
+        elsif hour >= 16 and min >= 00 and sec >= 00 and hour <= 23 and min <= 59 and sec <= 59 
+          shift_now = 3
+        elsif hour >= 00 and min >= 00 and sec >= 00 and hour <= 7 and min <= 59 and sec <= 59 
+          shift_now = 4
+        end 
+      # -----------------------------------------------------------
+        params[:header]["sys_plant_id"] = params["select_plant"]
+        params[:header]["date"] = DateTime.now()
+        params[:header]["special_document"] = 0
+        params[:header]["code"] = document_number(params[:header]["sys_plant_id"], nil, nil, nil, "secproc", "spb5", params[:header]["date"], nil )
+        params[:header]["hrd_work_shift_id"] = shift_now
+        params[:header]["created_by"] = session[:id]
+        params[:header]["created_at"] = DateTime.now()
 
-      #   #item bqics nya ga di isi
-      #   if false_bqics > 0
-      #     status = "403 Forbidden"
-      #     message1 = "Check Ulang Form Anda"
-      #     message2 = ""
-      #     puts error
-      #   else 
-      #     begin
-      #       record = Prodspb5.new(params[:header].permit!)
+ 
+        begin
+          record = SecprocSpb5.new(params[:header].permit!)
+          
+          if record.save
+            record.secproc_spb5_items.build(record_save)
             
-      #       if record.save
-      #         record.prod_spb5_items.build(record_save)
-              
-      #         # record.save
-      #         puts record_save
-      #         puts record.save
-      #         puts record.valid?
-      #         puts record.errors.as_json
-      #         flash.now[:success] = "Berhasil Save dengan nomor Dokumen #{record.number}, silahkan buka SIP"
-      #       else
-      #         status = "403 Forbidden"
-      #         message1 = "#{error}"
-      #         message2 = ""
-      #         puts error
-      #       end
-      #     rescue StandardError => error
-      #       status = "403 Forbidden"
-      #       message1 = "#{error}"
-      #       message2 = ""
-      #       puts error
-      #     end
-      #   end
-      # end
+            # record.save
+            flash.now[:success] = "Berhasil Save dengan nomor Dokumen #{record.code}, silahkan buka SIP"
+          else
+            status = "403 Forbidden"
+            message1 = "ERROR CREATE"
+            message2 = ""
+          end
+
+          
+            puts record_save
+            puts record.save
+            puts record.valid?
+            puts record.errors.as_json
+        rescue StandardError => error
+          status = "403 Forbidden"
+          message1 = "#{error}"
+          message2 = ""
+          puts error
+        end
+
+      end
         
     else
       status = "403 Forbidden"

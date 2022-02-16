@@ -16,10 +16,6 @@
             <label for="exampleFormControlInput1" class="form-label">Plant</label>
             <%= select_tag "plant", options_for_select(@plants,(params[:plant_id])),:prompt=>'- Select Plant -', :class=>"form-control plant"%>
           </div>
-          <div class="mb-3 form_bqics" style="display: none;">
-            <label for="exampleFormControlInput1" class="form-label">BQICS</label>
-            <%= select_tag "bqics", options_for_select(["YES","NO"],"NO"), :class=>"form-control bqics"%>
-          </div>
         </div>
       </div>
     </div>
@@ -85,7 +81,6 @@
         <div class="row mt-2">
           <div class="col-12 col-md-6 text-center">
             <%= hidden_field_tag "select_plant", nil, :class=>"select_plant"%>
-            <%= hidden_field_tag "select_bqics", 0, :class=>"select_bqics"%>
 
             <input class="btn btn-md btn-success mb-2 px-5" type="submit" onclick="" id="save_spb5" disabled="disabled" value="Create SPB 5"/>
             <button class="btn btn-md btn-success mb-2 px-5" onclick="" id="save_spb5_clear" style="display: none;" /></button>
@@ -106,7 +101,6 @@
                       <th class="th-header" scope="col" width="50px">No.</th>
                       <th class="th-header" scope="col">Part ID</th>
                       <th class="th-header" scope="col">Part Name</th>
-                      <th class="th-header" scope="col">BQICS</th>
                       <th class="th-header" scope="col">Quantity</th>
                       <th class="th-header" scope="col">Total Box</th>
                       <th class="th-header" scope="col">Qty / Box</th>

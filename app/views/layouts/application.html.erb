@@ -30,17 +30,17 @@
               <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="/">Home</a>
               </li>
-              <% if session[:permission]["wh_spb1"]["view"] %>
+              <% if session[:permission]["wh_spb1"].present? and session[:permission]["wh_spb1"]["view"] %>
                 <li class="nav-item">
                   <a class="nav-link" href="/spb1">SPB1</a>
                 </li>
               <% end %>
-              <% if session[:permission]["prod_spb2"]["view"] %>
+              <% if session[:permission]["prod_spb2"].present? and session[:permission]["prod_spb2"]["view"] %>
                 <li class="nav-item">
                   <a class="nav-link" href="/spb2">SPB2</a>
                 </li>
               <% end %>
-              <% if session[:permission]["secproc_spb5"]["view"] %>
+              <% if session[:permission]["secproc_spb5"].present? and session[:permission]["secproc_spb5"]["view"] %>
                 <li class="nav-item">
                   <a class="nav-link" href="/spb5">SPB5</a>
                 </li>

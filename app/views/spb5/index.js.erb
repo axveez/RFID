@@ -52,20 +52,11 @@ function dikSocket(send_msg,konci,ipreader) {
                     }else{
                       qty_product = value.quantity;
                     }
-                  if($(".bqics").val()=="YES"){
-                    if(value.bqics.length==0){
-                      bgcolor = "bg-warning";
-                      tooltip = 'title="BQICS Belum di Upload / Bukan Produk Bqics"';
-                      disabled = 'disabled="disabled"';
-                    }
-                  }
 
                   if(value.internal_part_id.substring(0,3)!="PSA"){
-                    if(value.bqics.length==0){
-                      bgcolor = "bg-warning";
-                      tooltip = 'title="Bukan Part PSA/ pastikan sudah di combine"';
-                      disabled = 'disabled="disabled"';
-                    }
+                    bgcolor = "bg-warning";
+                    tooltip = 'title="Bukan Part PSA/ pastikan sudah di combine"';
+                    disabled = 'disabled="disabled"';
                   }
                 }
                 meme += (`<tr class="${bgcolor}" ${tooltip}>
@@ -73,7 +64,6 @@ function dikSocket(send_msg,konci,ipreader) {
                             <div class='custom-control custom-checkbox text-center'>
                               <input type='checkbox' ${disabled} onchange="collect_data()" class='form-check-input' id='customCheck${c}' trid="${c}">
                               <input type='hidden' class='eng_product_id' value="${value.eng_product_id}">
-                              <input type='hidden' class='bqics' value='${JSON.stringify(value.bqics)}'>
                             </div>
                             </td>
                           <td class="count" trid="${c}">${c}</td>
@@ -257,13 +247,8 @@ function collect_data(){
       qty_stock = Number($(v).find(".qty_stock").val());
       eng_product_id = $(v).find(".eng_product_id").val();
 
-      if($(".bqics").val()=="YES"){
-        bqics = $(v).find(".bqics").val();
-      }else{
-        bqics = "[]";
-      }
       box_count = 1;
-      arr.push({ part_number: pn, part_name: pname, eng_product_id: eng_product_id, part_qty: qty, qty_stock: qty_stock, box_count: box_count, qty_box: qty, bqics: JSON.parse(bqics)});
+      arr.push({ part_number: pn, part_name: pname, eng_product_id: eng_product_id, part_qty: qty, qty_stock: qty_stock, box_count: box_count, qty_box: qty});
       c +=1;
     }
   });
@@ -271,7 +256,7 @@ function collect_data(){
   arr.reduce(function(res, value) {
 
     if (!res[value.part_number]) {
-      res[value.part_number] = { part_number: value.part_number, part_name: value.part_name, eng_product_id: value.eng_product_id, part_qty: 0, qty_stock: value.qty_stock,box_count: 0, qty_box: value.qty_box, bqics: value.bqics };
+      res[value.part_number] = { part_number: value.part_number, part_name: value.part_name, eng_product_id: value.eng_product_id, part_qty: 0, qty_stock: value.qty_stock,box_count: 0, qty_box: value.qty_box};
       result.push(res[value.part_number]);
     }
     res[value.part_number].part_qty += value.part_qty;  
@@ -283,26 +268,16 @@ function collect_data(){
 
   var c = 1;
   var tbl_sum = "";
-  var option = ""
   $.each(result, function(k, v) {
-    option = "";
-    $.each(v['bqics'], function(k, v) {
-      option += `<option value="${v["id"]}">${v["lot_number"]}</option>`;
-    });
 
     tbl_sum += `<tr>
                   <td>
                     ${c}
-                    <input type="hidden" value="Created BY RFID System" name="header[remarks]">
+                    <input type="hidden" value="Created BY RFID System" name="header[note]">
                     <input type="hidden" name="record[][eng_product_id]" value="${v['eng_product_id']}">
                   </td>
                   <td><input type="text" style="min-width: 250px;" class="form-control form-control-sm" readonly="true" name="part_name" value="${v['part_name']}" ></td>
                   <td><input type="text" style="min-width: 150px;" class="form-control form-control-sm" readonly="true" name="record[][internal_part_id]" value="${v['part_number']}" ></td>
-                  <td>
-                    <select class="form-select form-select-sm" name="record[][qc_bqics_id]">
-                    ${option}
-                    </select>
-                  </td>
                   <td><input type="text" style="min-width: 50px;" class="form-control form-control-sm" readonly="true" name="record[][quantity]" value="${v['part_qty']}" ></td>
                   <td><input type="text" style="min-width: 50px;" class="form-control form-control-sm" readonly="true" name="record[][box_total]" value="${v['box_count']}" ></td>
                   <td><input type="text" style="min-width: 50px;" class="form-control form-control-sm" readonly="true" name="record[][qty_box]" value="${v['qty_box']}" ></td>
@@ -317,18 +292,4 @@ function collect_data(){
 $(document).off('change','#plant');
 $(document).on('change','#plant', function(){
   $(".select_plant").val($(this).val());
-  if($(this).val()==2){
-    $(".form_bqics").show(); 
-  }else{
-    $(".form_bqics").hide();     
-  }
-});
-
-$(document).off('change','#bqics');
-$(document).on('change','#bqics', function(){
-  if($(this).val()=="YES"){
-    $(".select_bqics").val(1); 
-  }else{
-    $(".select_bqics").val(0);     
-  }
 });
